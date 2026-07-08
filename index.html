@@ -1,280 +1,255 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>食品業者產品清單查詢</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f4f6f9;
-      font-family: "Microsoft JhengHei", "PingFang TC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    .navbar-brand i {
-      margin-right: 8px;
-    }
-
-    .filter-card {
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-      border: none;
-    }
-
-    .table-card {
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-      border: none;
-    }
-
-    thead.sticky-head th {
-      position: sticky;
-      top: 0;
-      background-color: #212529;
-      color: #fff;
-      z-index: 2;
-      white-space: nowrap;
-    }
-
-    .table-responsive {
-      max-height: 65vh;
-    }
-
-    .badge-county {
-      background-color: #0d6efd15;
-      color: #0d6efd;
-      font-weight: 500;
-    }
-
-    .highlight {
-      background-color: #fff3a3;
-      padding: 0 1px;
-      border-radius: 2px;
-    }
-
-    #resultCount {
-      font-weight: 600;
-      color: #0d6efd;
-    }
-
-    .empty-state {
-      padding: 60px 0;
-      text-align: center;
-      color: #9aa0a6;
-    }
-
-    .empty-state i {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .clear-btn {
-      cursor: pointer;
-    }
-
-    footer {
-      color: #9aa0a6;
-      font-size: 0.85rem;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>福懋福壽泰山油品 下游業者清單查詢</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<style>
+  body {
+    background-color: #f4f6f9;
+    font-family: "Microsoft JhengHei", "PingFang TC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .navbar-brand i { margin-right: 8px; }
+  .filter-card, .table-card {
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border: none;
+  }
+  thead.sticky-head th {
+    position: sticky;
+    top: 0;
+    background-color: #212529;
+    color: #fff;
+    z-index: 2;
+    white-space: nowrap;
+  }
+  .table-responsive { max-height: 65vh; }
+  .badge-county {
+    background-color: #0d6efd15;
+    color: #0d6efd;
+    font-weight: 500;
+  }
+  .badge-note {
+    background-color: #dc354515;
+    color: #dc3545;
+    font-weight: 500;
+  }
+  .highlight { background-color: #fff3a3; padding: 0 1px; border-radius: 2px; }
+  #resultCount { font-weight: 600; color: #0d6efd; }
+  .empty-state { padding: 60px 0; text-align: center; color: #9aa0a6; }
+  .empty-state i { font-size: 2.5rem; margin-bottom: 10px; display:block; }
+  footer { color: #9aa0a6; font-size: 0.85rem; }
+  .batch-cell, .expiry-cell { font-size: 0.85rem; color: #555; white-space: nowrap; }
+  #loadError { display:none; }
+</style>
 </head>
-
 <body>
 
-  <nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
-    <div class="container">
-      <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-magnifying-glass"></i>食品業者產品清單查詢</span>
-    </div>
-  </nav>
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+  <div class="container">
+    <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-magnifying-glass"></i>福懋福壽泰山油品 下游業者清單查詢</span>
+  </div>
+</nav>
 
-  <div class="container pb-5">
+<div class="container pb-5">
 
-    <div class="card filter-card mb-4">
-      <div class="card-body">
-        <div class="row g-3 align-items-end">
-          <div class="col-12 col-md-3">
-            <label class="form-label fw-semibold"><i
-                class="fa-solid fa-map-location-dot me-1 text-primary"></i>縣市</label>
-            <select id="countySelect" class="form-select">
-              <option value="">全部縣市</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label fw-semibold"><i class="fa-solid fa-industry me-1 text-primary"></i>業者名稱</label>
-            <select id="companySelect" class="form-select">
-              <option value="">全部業者</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label fw-semibold"><i class="fa-solid fa-tag me-1 text-primary"></i>產品名稱關鍵字</label>
-            <div class="input-group">
-              <span class="input-group-text bg-white"><i class="fa-solid fa-search"></i></span>
-              <input type="text" id="keywordInput" class="form-control" placeholder="輸入產品名稱關鍵字搜尋...">
-            </div>
-          </div>
-          <div class="col-12 col-md-1 d-grid">
-            <button id="resetBtn" class="btn btn-outline-secondary" title="清除篩選">
-              <i class="fa-solid fa-rotate-left"></i> 清除
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-      <div>符合筆數：<span id="resultCount">0</span> / <span id="totalCount">0</span></div>
-      <div class="text-muted small">資料來源：232項產品清單 115.7.7</div>
-    </div>
-
-    <div class="card table-card">
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-striped table-hover align-middle mb-0">
-            <thead class="sticky-head">
-              <tr>
-                <th style="width:70px;">序號</th>
-                <th style="width:110px;">縣市</th>
-                <th>業者名稱</th>
-                <th>產品名稱</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-        </div>
-        <div id="emptyState" class="empty-state d-none">
-          <i class="fa-regular fa-folder-open"></i>
-          查無符合條件的資料，請調整篩選條件
-        </div>
-      </div>
-    </div>
-
-    <footer class="text-center mt-4">
-      &copy; 食品業者產品清單查詢系統 · 資料為靜態內嵌 JSON（共 232 筆）
-    </footer>
+  <div id="loadError" class="alert alert-danger">
+    <i class="fa-solid fa-triangle-exclamation me-1"></i>
+    無法載入 <code>source.js</code>，請確認此檔案與本 HTML 檔放在同一資料夾內，並以伺服器方式開啟（部分瀏覽器不允許直接以 file:// 開啟本機 JS 檔）。
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // ------------------------------------------------------------
-    // 內嵌資料來源 (由表格圖片轉換而成)
-    // 欄位: no(序號), county(縣市), company(業者名稱), product(產品名稱)
-    // ------------------------------------------------------------
-    const PRODUCT_DATA = [{ "no": 1, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "雙蔬鮪魚飯糰" }, { "no": 2, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "林聰明-雞肉飯飯糰" }, { "no": 3, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "檜木燻雞飯糰" }, { "no": 4, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "炭火燒肉飯糰" }, { "no": 5, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "韓式燒肉泡菜飯糰" }, { "no": 6, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "炙烤鹽蔥燒肉飯糰" }, { "no": 7, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "宗家府泡菜燒肉飯糰" }, { "no": 8, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "哇沙米秋鮭飯糰" }, { "no": 9, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "新極上飯糰-XO醬珠貝" }, { "no": 10, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "星級饗宴-晶英三杯蛤蜊飯糰" }, { "no": 11, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "星級饗宴-米香鹹酥蝦飯糰" }, { "no": 12, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "新極上飯糰-熟成明太子鮭魚" }, { "no": 13, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(區)星宇新極上-胡同炭火牛小排" }, { "no": 14, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "新極上飯糰-蔥鹽生鮭" }, { "no": 15, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)雙蔬鮪魚飯糰" }, { "no": 16, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)林聰明-雞肉飯飯糰" }, { "no": 17, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)檜木燻雞飯糰" }, { "no": 18, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)炭火燒肉飯糰" }, { "no": 19, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)炙烤鹽蔥燒肉飯糰" }, { "no": 20, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)宗家府泡菜燒肉飯糰" }, { "no": 21, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)哇沙米秋鮭飯糰" }, { "no": 22, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)晶英三杯蛤蜊飯糰" }, { "no": 23, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)星級饗宴-米香-鹹酥蝦飯糰" }, { "no": 24, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)新極上飯糰-熟成明太子鮭魚" }, { "no": 25, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)新極上飯糰-蔥鹽生鮭" }, { "no": 26, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "握便當-豪華秘製雙拼" }, { "no": 27, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)握便當-豪華秘製雙拼" }, { "no": 28, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "米香-麻油雞雙菇飯糰" }, { "no": 29, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "阜杭豆漿-經典飯糰" }, { "no": 30, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)阜杭豆漿-經典飯糰" }, { "no": 31, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "阜杭豆漿-里肌肉蛋紫米飯糰" }, { "no": 32, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金)阜杭豆漿-里肌肉蛋紫米飯糰" }, { "no": 33, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "晶華-四起司香草烤雞握便當" }, { "no": 34, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)晶華四起司香草烤雞握便當" }, { "no": 35, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "炙燒明太子鮭魚飯糰(圓)" }, { "no": 36, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "歐姆蛋包飯飯糰(圓)" }, { "no": 37, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金)歐姆蛋包飯飯糰(圓)" }, { "no": 38, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "石安牧場溏心蛋飯糰(圓)" }, { "no": 39, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)石安牧場溏心蛋飯糰(圓)" }, { "no": 40, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "鮪魚肉鬆雙手卷" }, { "no": 41, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)鮪魚肉鬆雙手卷" }, { "no": 42, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "晶英-南蠻炸雞雙享壽司" }, { "no": 43, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)晶英-南蠻炸雞雙享壽司" }, { "no": 44, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "生鮭夾心壽司" }, { "no": 45, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)生鮭夾心壽司" }, { "no": 46, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "阿拉斯加秋鮭鮪魚雙手卷" }, { "no": 47, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(金馬)阿拉斯加秋鮭鮪魚雙手卷" }, { "no": 48, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "醬燒烤雞溏心蛋三明治" }, { "no": 49, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "溏心蛋紐奧良風味烤雞三明治" }, { "no": 50, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "燻雞菇菇彩蔬三明治" }, { "no": 51, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "吉士豬肉堡加蛋" }, { "no": 52, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "花生熔岩辣雞腿堡" }, { "no": 53, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "牛肉起司堡" }, { "no": 54, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "塔塔香炸鱈魚堡" }, { "no": 55, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "四起司燻腸捲餅" }, { "no": 56, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "香腸嘎香菜風味捲餅" }, { "no": 57, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "鮪魚雞蛋蔬菜捲餅" }, { "no": 58, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "牛角-炙燒雙拼便當" }, { "no": 59, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)牛角-炙燒雙拼便當" }, { "no": 60, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "豆酥烤魚鮮蔬餐盒" }, { "no": 61, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)豆酥烤魚鮮蔬餐盒" }, { "no": 62, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "極饗-奮起湖秘製滷排" }, { "no": 63, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)極饗-奮起湖秘製滷排" }, { "no": 64, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "晶華-府城肉燥厚切排骨飯" }, { "no": 65, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)晶華-府城肉燥厚切排骨飯" }, { "no": 66, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "日式佛蒙特咖哩雞肉飯" }, { "no": 67, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)日式佛蒙特咖哩雞肉飯" }, { "no": 68, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "韓式漢堡排粉紅醬燉飯(含牛)" }, { "no": 69, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "富錦樹-剝皮辣椒滑蛋燴飯" }, { "no": 70, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "歐姆蛋包飯" }, { "no": 71, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "晶華-香烤魚排青醬燉飯" }, { "no": 72, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)晶華-香烤魚排青醬燉飯" }, { "no": 73, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "海鮮青醬焗飯" }, { "no": 74, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)海鮮青醬焗飯" }, { "no": 75, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "晶英-泡菜豬肉豆腐煲飯" }, { "no": 76, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)晶英-泡菜豬肉豆腐煲飯" }, { "no": 77, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(蔬)經典獅子頭燴飯" }, { "no": 78, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)(蔬)經典獅子頭燴飯" }, { "no": 79, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "三起司肉醬焗飯" }, { "no": 80, "county": "基隆市", "company": "聯華食品工業股份有限公司-基隆", "product": "(離)三起司肉醬焗飯" }, { "no": 81, "county": "臺北市", "company": "南僑油脂事業股份有限公司", "product": "南僑NEBOS機能性脂肪抹醬" }, { "no": 82, "county": "臺北市", "company": "南僑油脂事業股份有限公司", "product": "王牌液態油炸專用油" }, { "no": 83, "county": "臺北市", "company": "南僑油脂事業股份有限公司", "product": "南僑烘焙潔淨升級油-無添加攪拌油" }, { "no": 84, "county": "臺北市", "company": "南僑油脂事業股份有限公司", "product": "維佳無水烘焙油脂" }, { "no": 85, "county": "臺北市", "company": "南僑油脂事業股份有限公司", "product": "植物性起酥用油" }, { "no": 86, "county": "臺北市", "company": "南僑油脂事業股份有限公司", "product": "維佳特製丹麥專用油" }, { "no": 87, "county": "臺北市", "company": "南僑油脂事業股份有限公司", "product": "特製專用烘焙油脂" }, { "no": 88, "county": "新北市", "company": "享記食品有限公司", "product": "大紅袍花椒油" }, { "no": 89, "county": "新北市", "company": "享記食品有限公司", "product": "麻辣紅油" }, { "no": 90, "county": "新北市", "company": "享記食品有限公司", "product": "青麻花椒油" }, { "no": 91, "county": "新北市", "company": "享記食品有限公司", "product": "麻辣鍋底醬" }, { "no": 92, "county": "新北市", "company": "享記食品有限公司", "product": "麻辣鍋底醬(素)" }, { "no": 93, "county": "新北市", "company": "享記食品有限公司", "product": "咖哩鍋底醬" }, { "no": 94, "county": "新北市", "company": "享記食品有限公司", "product": "調味豆酥" }, { "no": 95, "county": "新北市", "company": "東穎食品實業有限公司", "product": "沙拉醬" }, { "no": 96, "county": "新北市", "company": "桂冠實業股份有限公司", "product": "桂冠沙拉" }, { "no": 97, "county": "新北市", "company": "華福食品股份有限公司", "product": "麵包烘焙食品" }, { "no": 98, "county": "新北市", "company": "廣達香食品股份有限公司", "product": "塔塔醬" }, { "no": 99, "county": "新北市", "company": "廣達香食品股份有限公司", "product": "凱薩醬口" }, { "no": 100, "county": "新北市", "company": "廣達香食品股份有限公司", "product": "蜂蜜芥末醬" }, { "no": 101, "county": "新北市", "company": "廣達香食品股份有限公司", "product": "素食香鬆(海苔)" }, { "no": 102, "county": "桃園市", "company": "大地農產有限公司", "product": "蔥頭醬" }, { "no": 103, "county": "桃園市", "company": "大地農產有限公司", "product": "油蔥酥" }, { "no": 104, "county": "桃園市", "company": "龍膳坊企業有限公司", "product": "冷凍餅皮" }, { "no": 105, "county": "桃園市", "company": "聯華食品工業股份有限公司-中壢", "product": "荷卡炙燒明太子鮭魚烤飯糰" }, { "no": 106, "county": "桃園市", "company": "聯華食品工業股份有限公司-中壢", "product": "荷卡極上經典飯糰" }, { "no": 107, "county": "新竹縣", "company": "聯合利華股份有限公司", "product": "香甜沙拉醬" }, { "no": 108, "county": "新竹縣", "company": "聯合利華股份有限公司", "product": "美玉白汁" }, { "no": 109, "county": "新竹縣", "company": "聯合利華股份有限公司", "product": "百事福美玉白汁" }, { "no": 110, "county": "新竹縣", "company": "聯合利華股份有限公司", "product": "香蒜風味醬" }, { "no": 111, "county": "臺中市", "company": "味源股份有限公司", "product": "椒麻拌醬" }, { "no": 112, "county": "臺中市", "company": "味源股份有限公司", "product": "油蔥拌醬" }, { "no": 113, "county": "臺中市", "company": "味源股份有限公司", "product": "椒麻油" }, { "no": 114, "county": "臺中市", "company": "味源股份有限公司", "product": "辣油" }, { "no": 115, "county": "臺中市", "company": "味源股份有限公司", "product": "油蔥蒜醬" }, { "no": 116, "county": "臺中市", "company": "大買家食品有限公司大里國光分公司", "product": "麵包" }, { "no": 117, "county": "臺中市", "company": "大買家食品有限公司大里國光分公司", "product": "熟食" }, { "no": 118, "county": "臺中市", "company": "頂裕食品股份有限公司", "product": "素瓜子肉罐頭" }, { "no": 119, "county": "臺中市", "company": "金安信食品有限公司", "product": "烘焙用餡料" }, { "no": 120, "county": "彰化縣", "company": "禾家香食品股份有限公司", "product": "水餃等麵製品" }, { "no": 121, "county": "南投縣", "company": "金福華", "product": "沙茶醬" }, { "no": 122, "county": "南投縣", "company": "金福華", "product": "清鍋底醬" }, { "no": 123, "county": "南投縣", "company": "金福華", "product": "香蒜青蔥醬" }, { "no": 124, "county": "南投縣", "company": "金福華", "product": "麻辣醬" }, { "no": 125, "county": "南投縣", "company": "金福華", "product": "豆瓣醬" }, { "no": 126, "county": "南投縣", "company": "金福華", "product": "綠咖哩湯底" }, { "no": 127, "county": "南投縣", "company": "金福華", "product": "麻辣鴨血" }, { "no": 128, "county": "雲林縣", "company": "松鼎", "product": "黃金調和油" }, { "no": 129, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "健康廚房纖活優格沙拉醬" }, { "no": 130, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "台式香甜沙拉(無扣環)" }, { "no": 131, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "105沙拉" }, { "no": 132, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "味全美食沙拉(205/白玉沙拉)" }, { "no": 133, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "日式山葵風味沙拉醬(安倍)" }, { "no": 134, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "歐風甜口沙拉醬(歐式沙拉醬)" }, { "no": 135, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "歐風甜口沙拉醬(香純)" }, { "no": 136, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "日式芳醇原味沙拉醬" }, { "no": 137, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "101沙拉" }, { "no": 138, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "101-日式蛋黃沙拉醬" }, { "no": 139, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "106-歐風酸甜沙拉醬" }, { "no": 140, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "日式芳醇原味沙拉醬" }, { "no": 141, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "F-104歐風鹹式沙拉醬" }, { "no": 142, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "F-101日式蛋黃醬" }, { "no": 143, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "健康廚房-焙煎芝麻" }, { "no": 144, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "屋馬焙煎芝麻醬" }, { "no": 145, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "味全焙煎芝麻(109版)" }, { "no": 146, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "經典凱薩沾拌淋醬(新)" }, { "no": 147, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "油醋沙拉醬-經典凱薩(108新版)" }, { "no": 148, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "特級沙拉醬" }, { "no": 149, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "味全沙拉醬袋裝" }, { "no": 150, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "F-台式特級沙拉" }, { "no": 151, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "味全105S沙拉醬" }, { "no": 152, "county": "雲林縣", "company": "味全食品工業股份有限公司", "product": "105沙拉醬袋裝" }, { "no": 153, "county": "雲林縣", "company": "張O發", "product": "油炸豆包" }, { "no": 154, "county": "雲林縣", "company": "林O隆", "product": "油炸豆包" }, { "no": 155, "county": "雲林縣", "company": "峰妙商行", "product": "油炸豆包" }, { "no": 156, "county": "雲林縣", "company": "玉品實業有限公司", "product": "油炸豆包" }, { "no": 157, "county": "雲林縣", "company": "廖O盛", "product": "油炸豆包" }, { "no": 158, "county": "臺南市", "company": "聯瑞食品科技股份有限公司", "product": "川味紅油冷麵醬" }, { "no": 159, "county": "臺南市", "company": "聯瑞食品科技股份有限公司", "product": "沙拉及美乃滋(赤象拔蚌沙拉、水果沙拉、辣味美奶滋)" }, { "no": 160, "county": "高雄市", "company": "維義事業股份有限公司", "product": "維義大豆沙拉油" }, { "no": 161, "county": "高雄市", "company": "維義事業股份有限公司", "product": "順發興專用油" }, { "no": 162, "county": "高雄市", "company": "維義事業股份有限公司", "product": "鼎冠油炸專用油" }, { "no": 163, "county": "高雄市", "company": "維義事業股份有限公司", "product": "鼎冠大豆沙拉油" }, { "no": 164, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "里仁調味便當菜155g" }, { "no": 165, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "紅油辣椒410g" }, { "no": 166, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "甜麵醬460g" }, { "no": 167, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "眷村剁椒蒜香" }, { "no": 168, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "老北京440g" }, { "no": 169, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "家常辣270g" }, { "no": 170, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "訂製品_甜麵醬含香油及乳酸20kg" }, { "no": 171, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "甜麵醬3kg" }, { "no": 172, "county": "高雄市", "company": "明德食品工業股份有限公司", "product": "眷村剁椒蒜香150g" }, { "no": 173, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "黑芝麻醬TA-6320" }, { "no": 174, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "金豚骨湯TA-6154" }, { "no": 175, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "多蜜醬TA" }, { "no": 176, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "黃金味噌醬" }, { "no": 177, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "柴魚昆布TA-2271" }, { "no": 178, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "白芝麻醬TA-6298" }, { "no": 179, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "四川豚骨麻辣TA-2232" }, { "no": 180, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "九州豚骨" }, { "no": 181, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "豚骨高湯TA-6630" }, { "no": 182, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "黑咖哩醬TA-1249" }, { "no": 183, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "甘口黑咖哩TA-1705" }, { "no": 184, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "麻辣火鍋TA-3683" }, { "no": 185, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "柴魚昆布TA-2271" }, { "no": 186, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "甘口黑咖哩TA-1705" }, { "no": 187, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "柴魚昆布TA-2380" }, { "no": 188, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "豚骨高湯TA-6630" }, { "no": 189, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "麻辣高湯TA-6899" }, { "no": 190, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "牛肉湯TA-3899" }, { "no": 191, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "柴魚昆布TA-2271" }, { "no": 192, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "日式咖哩醬BFT" }, { "no": 193, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "黑咖哩醬TA-5495" }, { "no": 194, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "豚骨高湯TA-6630" }, { "no": 195, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "海鮮醬油TA-5758" }, { "no": 196, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "燒肉醬TA" }, { "no": 197, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "九州豚骨" }, { "no": 198, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "日式咖哩醬BFT" }, { "no": 199, "county": "屏東縣", "company": "台灣有明食品股份有限公司", "product": "甘口黑咖哩TA-1705" }, { "no": 200, "county": "屏東縣", "company": "崁頂義豐麻油廠", "product": "普通香油" }, { "no": 201, "county": "屏東縣", "company": "崁頂義豐麻油廠", "product": "特級香油" }, { "no": 202, "county": "屏東縣", "company": "崁頂義豐麻油廠", "product": "香油" }, { "no": 203, "county": "屏東縣", "company": "崁頂義豐麻油廠", "product": "普通麻油" }, { "no": 204, "county": "屏東縣", "company": "崁頂義豐麻油廠", "product": "麻醬包" }, { "no": 205, "county": "宜蘭縣", "company": "惠眾食品工業股份有限公司", "product": "SH番茄汁鮪魚腹肉" }, { "no": 206, "county": "宜蘭縣", "company": "惠眾食品工業股份有限公司", "product": "紅SH油漬鮪魚" }, { "no": 207, "county": "宜蘭縣", "company": "惠眾食品工業股份有限公司", "product": "綠SH油漬鮪魚" }, { "no": 208, "county": "宜蘭縣", "company": "惠眾食品工業股份有限公司", "product": "三興特製紅燒鰻" }, { "no": 209, "county": "宜蘭縣", "company": "惠眾食品工業股份有限公司", "product": "三興辣味燒鰻" }, { "no": 210, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)豆竹" }, { "no": 211, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)一級棒A" }, { "no": 212, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)一級棒" }, { "no": 213, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)北海貝" }, { "no": 214, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)魚豆腐" }, { "no": 215, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)起司海鮮卷" }, { "no": 216, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)竹輪" }, { "no": 217, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)切片椿花" }, { "no": 218, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)北海翅" }, { "no": 219, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)香檬麻吉燒" }, { "no": 220, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)魚卵卷" }, { "no": 221, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)切片魚板" }, { "no": 222, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(川島)一口天" }, { "no": 223, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)一口天" }, { "no": 224, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)一級棒A" }, { "no": 225, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)北海翅" }, { "no": 226, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)魚豆腐" }, { "no": 227, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)豆竹" }, { "no": 228, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)魚卵卷" }, { "no": 229, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)切片魚板" }, { "no": 230, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)圓蝦味球" }, { "no": 231, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(丸大)蝦味球" }, { "no": 232, "county": "宜蘭縣", "company": "隆盛食品冷凍股份有限公司", "product": "(小武)魚豆腐" }];
+  <div class="card filter-card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-3">
+          <label class="form-label fw-semibold"><i class="fa-solid fa-map-location-dot me-1 text-primary"></i>縣市</label>
+          <select id="countySelect" class="form-select">
+            <option value="">全部縣市</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-semibold"><i class="fa-solid fa-industry me-1 text-primary"></i>業者</label>
+          <select id="companySelect" class="form-select">
+            <option value="">全部業者</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-semibold"><i class="fa-solid fa-tag me-1 text-primary"></i>品項關鍵字</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="fa-solid fa-search"></i></span>
+            <input type="text" id="keywordInput" class="form-control" placeholder="輸入品項關鍵字搜尋...">
+          </div>
+        </div>
+        <div class="col-12 col-md-1 d-grid">
+          <button id="resetBtn" class="btn btn-outline-secondary" title="清除篩選">
+            <i class="fa-solid fa-rotate-left"></i> 清除
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    const countySelect = document.getElementById('countySelect');
-    const companySelect = document.getElementById('companySelect');
-    const keywordInput = document.getElementById('keywordInput');
-    const resetBtn = document.getElementById('resetBtn');
-    const tableBody = document.getElementById('tableBody');
-    const resultCountEl = document.getElementById('resultCount');
-    const totalCountEl = document.getElementById('totalCount');
-    const emptyState = document.getElementById('emptyState');
+  <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+    <div>符合筆數：<span id="resultCount">0</span> / <span id="totalCount">0</span></div>
+    <div class="text-muted small">資料來源：福懋、福壽及泰山油品下游業者清單(截至1150708-12:00)</div>
+  </div>
 
-    function uniqueSorted(arr) {
-      return Array.from(new Set(arr)).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
-    }
+  <div class="card table-card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle mb-0">
+          <thead class="sticky-head">
+            <tr>
+              <th style="width:60px;">序號</th>
+              <th style="width:100px;">縣市</th>
+              <th>業者</th>
+              <th>品項</th>
+              <th style="width:160px;">批號</th>
+              <th style="width:110px;">有效日期</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="empty-state d-none">
+        <i class="fa-regular fa-folder-open"></i>
+        查無符合條件的資料，請調整篩選條件
+      </div>
+    </div>
+  </div>
 
-    function populateCountyOptions() {
-      const counties = uniqueSorted(PRODUCT_DATA.map(r => r.county));
-      counties.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        countySelect.appendChild(opt);
-      });
-    }
+  <footer class="text-center mt-4">
+    &copy; 下游業者清單查詢系統 · 資料由 <code>source.js</code> 動態載入
+  </footer>
+</div>
 
-    function populateCompanyOptions(filterCounty) {
-      const prevValue = companySelect.value;
-      companySelect.innerHTML = '<option value="">全部業者</option>';
-      const pool = filterCounty
-        ? PRODUCT_DATA.filter(r => r.county === filterCounty)
-        : PRODUCT_DATA;
-      const companies = uniqueSorted(pool.map(r => r.company));
-      companies.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        companySelect.appendChild(opt);
-      });
-      if (companies.includes(prevValue)) {
-        companySelect.value = prevValue;
-      }
-    }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="source.js"></script>
+<script>
+(function() {
+  if (typeof PRODUCT_DATA === 'undefined') {
+    document.getElementById('loadError').style.display = 'block';
+    return;
+  }
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, m => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[m]));
-    }
+  const countySelect   = document.getElementById('countySelect');
+  const companySelect  = document.getElementById('companySelect');
+  const keywordInput   = document.getElementById('keywordInput');
+  const resetBtn       = document.getElementById('resetBtn');
+  const tableBody      = document.getElementById('tableBody');
+  const resultCountEl  = document.getElementById('resultCount');
+  const totalCountEl   = document.getElementById('totalCount');
+  const emptyState     = document.getElementById('emptyState');
 
-    function highlight(text, keyword) {
-      if (!keyword) return escapeHtml(text);
-      const safeText = escapeHtml(text);
-      const safeKeyword = escapeHtml(keyword);
-      const idx = safeText.toLowerCase().indexOf(safeKeyword.toLowerCase());
-      if (idx === -1) return safeText;
-      return safeText.slice(0, idx) +
-        '<span class="highlight">' + safeText.slice(idx, idx + safeKeyword.length) + '</span>' +
-        safeText.slice(idx + safeKeyword.length);
-    }
+  function uniqueSorted(arr) {
+    return Array.from(new Set(arr)).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+  }
 
-    function renderTable() {
-      const county = countySelect.value;
-      const company = companySelect.value;
-      const keyword = keywordInput.value.trim();
-
-      const filtered = PRODUCT_DATA.filter(r => {
-        if (county && r.county !== county) return false;
-        if (company && r.company !== company) return false;
-        if (keyword && !r.product.toLowerCase().includes(keyword.toLowerCase())) return false;
-        return true;
-      });
-
-      tableBody.innerHTML = '';
-      if (filtered.length === 0) {
-        emptyState.classList.remove('d-none');
-      } else {
-        emptyState.classList.add('d-none');
-        const frag = document.createDocumentFragment();
-        filtered.forEach(r => {
-          const tr = document.createElement('tr');
-          tr.innerHTML =
-            '<td class="text-muted">' + r.no + '</td>' +
-            '<td><span class="badge badge-county">' + escapeHtml(r.county) + '</span></td>' +
-            '<td>' + escapeHtml(r.company) + '</td>' +
-            '<td>' + highlight(r.product, keyword) + '</td>';
-          frag.appendChild(tr);
-        });
-        tableBody.appendChild(frag);
-      }
-
-      resultCountEl.textContent = filtered.length;
-    }
-
-    countySelect.addEventListener('change', () => {
-      populateCompanyOptions(countySelect.value);
-      renderTable();
+  function populateCountyOptions() {
+    const counties = uniqueSorted(PRODUCT_DATA.map(r => r.county));
+    counties.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      countySelect.appendChild(opt);
     });
-    companySelect.addEventListener('change', renderTable);
-    keywordInput.addEventListener('input', renderTable);
+  }
 
-    resetBtn.addEventListener('click', () => {
-      countySelect.value = '';
-      populateCompanyOptions('');
-      companySelect.value = '';
-      keywordInput.value = '';
-      renderTable();
+  function populateCompanyOptions(filterCounty) {
+    const prevValue = companySelect.value;
+    companySelect.innerHTML = '<option value="">全部業者</option>';
+    const pool = filterCounty
+      ? PRODUCT_DATA.filter(r => r.county === filterCounty)
+      : PRODUCT_DATA;
+    const companies = uniqueSorted(pool.map(r => r.company));
+    companies.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      companySelect.appendChild(opt);
+    });
+    if (companies.includes(prevValue)) {
+      companySelect.value = prevValue;
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  }
+
+  function highlight(text, keyword) {
+    const safeText = escapeHtml(text);
+    if (!keyword) return safeText;
+    const safeKeyword = escapeHtml(keyword);
+    const idx = safeText.toLowerCase().indexOf(safeKeyword.toLowerCase());
+    if (idx === -1) return safeText;
+    return safeText.slice(0, idx) +
+      '<span class="highlight">' + safeText.slice(idx, idx + safeKeyword.length) + '</span>' +
+      safeText.slice(idx + safeKeyword.length);
+  }
+
+  function renderTable() {
+    const county  = countySelect.value;
+    const company = companySelect.value;
+    const keyword = keywordInput.value.trim();
+
+    const filtered = PRODUCT_DATA.filter(r => {
+      if (county && r.county !== county) return false;
+      if (company && r.company !== company) return false;
+      if (keyword && !r.item.toLowerCase().includes(keyword.toLowerCase())) return false;
+      return true;
     });
 
-    populateCountyOptions();
-    populateCompanyOptions('');
-    totalCountEl.textContent = PRODUCT_DATA.length;
+    tableBody.innerHTML = '';
+    if (filtered.length === 0) {
+      emptyState.classList.remove('d-none');
+    } else {
+      emptyState.classList.add('d-none');
+      const frag = document.createDocumentFragment();
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        const noteBadge = r.note
+          ? ' <span class="badge badge-note" title="' + escapeHtml(r.note) + '"><i class="fa-solid fa-circle-info"></i></span>'
+          : '';
+        tr.innerHTML =
+          '<td class="text-muted">' + r.no + '</td>' +
+          '<td><span class="badge badge-county">' + escapeHtml(r.county) + '</span></td>' +
+          '<td>' + escapeHtml(r.company) + noteBadge + '</td>' +
+          '<td>' + highlight(r.item, keyword) + '</td>' +
+          '<td class="batch-cell">' + escapeHtml(r.batch || '') + '</td>' +
+          '<td class="expiry-cell">' + escapeHtml(r.expiry || '') + '</td>';
+        frag.appendChild(tr);
+      });
+      tableBody.appendChild(frag);
+    }
+
+    resultCountEl.textContent = filtered.length;
+  }
+
+  countySelect.addEventListener('change', () => {
+    populateCompanyOptions(countySelect.value);
     renderTable();
-  </script>
-</body>
+  });
+  companySelect.addEventListener('change', renderTable);
+  keywordInput.addEventListener('input', renderTable);
 
+  resetBtn.addEventListener('click', () => {
+    countySelect.value = '';
+    populateCompanyOptions('');
+    companySelect.value = '';
+    keywordInput.value = '';
+    renderTable();
+  });
+
+  populateCountyOptions();
+  populateCompanyOptions('');
+  totalCountEl.textContent = PRODUCT_DATA.length;
+  renderTable();
+})();
+</script>
+</body>
 </html>
